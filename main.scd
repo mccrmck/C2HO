@@ -6,6 +6,8 @@ var sourceImg = "start.jpg".resolveRelative;
 var renderName = "3Iter.mov";
 var frames = 1000; // 3000
 
+var dataFile = "dyld_shared_cache_arm64e".resolveRelative;
+
 var moshPhoto = { |inPath, action|
 
 	Routine({
@@ -75,7 +77,6 @@ var moshVideo = { |inPath, outName, action|
 
 var moshFrames = { |pixFolder, iter, action|
 
-
 	Routine({
 		frames.do({ |i|
 			var suffix = "000%".format(i + 1);
@@ -89,9 +90,9 @@ var moshFrames = { |pixFolder, iter, action|
 			fork{
 				2.do({ |i|
 					var step = (220 * (i * 0.1).sin.linlin(-1,1,0,1)).asInteger;
-					var offset = size * [0.1,0.9].choose;
+					var offset = size * [0.2,0.3].choose;
 
-					var index = ((offset + step) * [0.2,0.5,0.8].choose) % size;
+					var index = ((offset + step)  % size).asInteger;
 					// array[index] = array[index] >> 1 | array[index] << 1;
 					// array[index] = array[index] >> 1 & array[index] << 1;
 					// array[index] = array[index - 1];
@@ -133,6 +134,28 @@ var render = { |movName,iter|
 
 	"ffmpeg -framerate 25 -i %img%-%04d.jpg % ".format(pPath, iter, "%", vPath ++ movName).runInTerminal
 
+};
+
+var data2Audio = { |inPath, outKey, sampleRate = 48000|
+	var cond = CondVar();
+	var file = File(inPath,"rb");
+	var int8 = Int8Array.newClear( file.length );
+	var factors = int8.size.factors;
+	file.read( int8 );
+	int8 = int8.resamp1(sampleRate * 120 * 2);// two minutes long, two channels
+	int8 = int8.collectAs({ |i,j|  (i / 80).clip2().tanh * -6.dbamp },FloatArray);
+
+	Routine{
+		var audio = SoundFile.openWrite(
+			"audio/".resolveRelative +/+ "%.wav".format(outKey).standardizePath,
+			"wav",
+			"float",
+			2,
+			sampleRate
+		);
+		audio.writeData( int8 );
+		audio.close;
+	}.play
 };
 
 Routine({
@@ -180,7 +203,7 @@ Routine({
 
 	cond.wait { File.exists(pixPath ++ "img%-%.jpg".format(iterations, frames)) };
 
-	// use jpgs to create the music - one jpeg == one second?
+	data2Audio.(dataFile,"audio",24000);
 
 
 	render.(renderName,iterations);
