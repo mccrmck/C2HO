@@ -13,8 +13,6 @@ var outPath = "/Users/mikemccormick/Library/Application Support/SuperCollider/Ex
 	factors = factors.reject({ |i| i > 2 });
 	factors = factors.add(1);
 
-	factors.postln;
-
 	Routine{
 		int8 = int8.collectAs({ |i,j|  i / 256 },FloatArray);
 
@@ -33,3 +31,13 @@ var outPath = "/Users/mikemccormick/Library/Application Support/SuperCollider/Ex
 	}.play
 }
 )
+
+
+fork{
+	(900..999).do({ |i|
+		var num = "000%".format(i + 1).keep(-4);
+		var path = "/Users/mikemccormick/Library/Application Support/SuperCollider/Extensions/CH2O/pix/img2-%.jpg".format(num);
+		~file2Audio.(path,i,20000);
+		0.01.wait;
+	})
+}
