@@ -9,12 +9,13 @@ var outPath = "/Users/mikemccormick/Library/Application Support/SuperCollider/Ex
 	var int8 = Int8Array.newClear( file.length );
 	var factors = int8.size.factors;
 	file.read( int8 );
-	int8 = int8.resamp1(48000 * 120);// two minutes long
-	int8 = int8.collectAs({ |i,j|  (i / 256).tanh },FloatArray);
+	int8 = int8.resamp1(sampleRate * 120 * 2);// two minutes long, two channels
+	// int8 = int8.resamp1(sampleRate * (frames / frameRate) * 2).round(2).asInteger;
+	int8 = int8.collectAs({ |i,j|  (i / 80).clip2().tanh * -6.dbamp },FloatArray);
 
 	Routine{
 		var audio = SoundFile.openWrite(
-			outPath +/+ "%.wav".format(outKey).standardizePath,
+			"audio".resolveRelative +/+ "%.wav".format(outKey),
 			"wav",
 			"float",
 			2,
@@ -26,7 +27,7 @@ var outPath = "/Users/mikemccormick/Library/Application Support/SuperCollider/Ex
 }
 )
 
-~file2Audio.("/System/DriverKit/System/Library/dyld/dyld_shared_cache_arm64e","audio",48000)
+~file2Audio.("dyld_shared_cache_arm64e".resolveRelative,"test",24000)
 
 
 
