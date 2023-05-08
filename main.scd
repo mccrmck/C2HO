@@ -1,11 +1,10 @@
 // CH2O AV
-
 (
 var pixPath    = "pix/".resolveRelative;
 var vidsPath   = "vids/".resolveRelative;
 var sourceImg  = "cabin.jpg".resolveRelative;
 // var sourceImg  = "mntn.jpg".resolveRelative;
-var renderName = "Sunday4.mov";
+var renderName = "monday.mov";
 var frames     = 1200;
 var frameRate  = 12;
 var iterations = 3;
@@ -28,7 +27,7 @@ var moshPhoto = { |inPath, action|
 				var offset = size * [0.2,0.4,0.7].choose;
 
 				var index = ((offset + step)  % size).asInteger;
-				// array[index] = array[index] >> 1 | array[index] << 1;                               //try some different moshing ideas
+				// array[index] = array[index] >> 1 | array[index] << 1;                               // try different moshing ideas
 				// array[index] = array[index] >> 1 & array[index] << 1;
 				// array[index] = array[index - 1];
 				// array[index] = array[index] - 1 % 127;
@@ -133,7 +132,7 @@ var video2Frames = { |movName, iter|
 
 var renderMov = { |movName,iter|
 	var pPath = pixPath.replace(" ","\\ ");
-	var vPath = "renders/".resolveRelative.replace(" ","\\ ");
+	var vPath = vidsPath.replace(" ","\\ ");
 
 	"ffmpeg -framerate % -i %img%-%04d.jpg % ".format(frameRate, pPath, iter, "%", vPath ++ movName).runInTerminal
 
@@ -162,7 +161,7 @@ var data2Audio = { |inPath, outKey, sampleRate = 48000|
 };
 
 var renderTogether = {
-	var inMov   = "renders/video.mov".resolveRelative.replace(" ","\\ ");
+	var inMov   = vidsPath.replace(" ","\\ ") +/+ "video.mov";
 	var inAudio = "audio/audio.wav".resolveRelative.replace(" ","\\ ");
 	var outPath = "renders/".resolveRelative.replace(" ","\\ ");
 
@@ -181,12 +180,11 @@ Routine({
 	iterations.do({ |index|
 
 		// make frames into a movie
-
 		frames2Video.("in%.mov".format(index),index);
 
 		90.wait;
 
-		cond.wait { File.exists(vidsPath ++ "in%.mov".format(index)) };
+		cond.wait { File.exists(vidsPath ++ "in%.mov".format(index)) }; // this is inconsistent
 
 		"made a movie".postln;
 
@@ -198,7 +196,7 @@ Routine({
 		// make movie into photos
 		video2Frames.("mosh%.mov".format(index),index);
 
-		32.wait;
+		32.wait;                                                     // this is also inconsistent
 
 		"made some frames".postln;
 
@@ -218,12 +216,9 @@ Routine({
 
 	"here".postln;
 
-	100.wait;
+	100.wait;                                                       // lazy
 
 	renderTogether.()
 
 }).play;
 )
-
-// must get callbacks from ffmpeg!
-
