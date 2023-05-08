@@ -54,7 +54,6 @@ var moshPhoto = { |inPath, action|
 var moshVideo = { |inPath, outName, action|
 
 	Routine({
-		// var cond = CondVar();
 		var outFile, inFile = File(vidsPath ++ inPath,"rb");
 		var length = inFile.length;
 		var array = Int8Array.newClear(length);
@@ -62,10 +61,10 @@ var moshVideo = { |inPath, outName, action|
 		inFile.read(array);
 
 		fork{
-			350.do({ |k|
+			350.do({ |i|
 				var index = size.rand;
 				array[index] = -128.rrand(127);
-				// array[index] = array[index] >> 1;
+				// array[index] = array[index] >> 1;                                               // try different moshing ideas
 			});
 
 			outFile = File(vidsPath +/+ outName, "wb");
@@ -77,12 +76,12 @@ var moshVideo = { |inPath, outName, action|
 	}).play
 };
 
-var moshFrames = { |pixFolder, iter, action|
+var moshFrames = { |iter, action|
 
 	Routine({
 		frames.do({ |i|
-			var suffix = "000%".format(i + 1);
-			var path = pixPath +/+ "img%-%.jpg".format(iter, suffix.keep(-4));
+			var suffix = "000%".format(i + 1).keep(-4);
+			var path = pixPath +/+ "img%-%.jpg".format(iter, suffix);
 			var outFile, inFile = File(path,"rb");
 			var length = inFile.length;
 			var array = Int8Array.newClear(length);
@@ -95,7 +94,7 @@ var moshFrames = { |pixFolder, iter, action|
 					var offset = size * [0.1,0.2,0.3].choose;
 
 					var index = ((offset + step)  % size).asInteger;
-					// array[index] = array[index] >> 1 | array[index] << 1;
+					// array[index] = array[index] >> 1 | array[index] << 1;                                 // try different moshing ideas
 					// array[index] = array[index] >> 1 & array[index] << 1;
 					// array[index] = array[index - 1];
 					// array[index] = array[index] - 1 % 127;
@@ -103,7 +102,7 @@ var moshFrames = { |pixFolder, iter, action|
 
 				});
 				0.01.wait;
-				outFile = File(pixPath +/+ "img%-%.jpg".format(iter + 1, suffix.keep(-4)), "wb");
+				outFile = File(pixPath +/+ "img%-%.jpg".format(iter + 1, suffix), "wb");
 				outFile.write(array);
 				outFile.close;
 			};
@@ -145,7 +144,7 @@ var data2Audio = { |inPath, outKey, sampleRate = 48000|
 	var factors = int8.size.factors;
 	file.read( int8 );
 	int8 = int8.resamp1((sampleRate * (frames/frameRate) * 2).round(2).asInteger);
-	int8 = int8.collectAs({ |i,j|  (i / 80).clip2().tanh * -6.dbamp },FloatArray);
+	int8 = int8.collectAs({ |i|  (i / 80).clip2().tanh * -6.dbamp },FloatArray);
 
 	Routine{
 		var audio = SoundFile.openWrite(
@@ -201,7 +200,7 @@ Routine({
 		"made some frames".postln;
 
 		// lightly corrupt each frame
-		moshFrames.(pixPath,index,{ cond.signalOne; "moshed some frames".postln; });
+		moshFrames.(index,{ cond.signalOne; "moshed some frames".postln; });
 
 		cond.wait { File.exists(pixPath ++ "img%-%.jpg".format(index + 1, frames)) };
 		cond.signalOne;
