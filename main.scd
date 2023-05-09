@@ -4,7 +4,7 @@ var pixPath    = "pix/".resolveRelative;
 var vidsPath   = "vids/".resolveRelative;
 var sourceImg  = "cabin.jpg".resolveRelative;
 // var sourceImg  = "mntn.jpg".resolveRelative;
-var renderName = "monday.mov";
+var renderName = "tuesday1.mov";
 var frames     = 1200;
 var frameRate  = 12;
 var iterations = 3;
@@ -138,10 +138,8 @@ var renderMov = { |movName,iter|
 };
 
 var data2Audio = { |inPath, outKey, sampleRate = 48000|
-	var cond = CondVar();
 	var file = File(inPath,"rb");
 	var int8 = Int8Array.newClear( file.length );
-	var factors = int8.size.factors;
 	file.read( int8 );
 	int8 = int8.resamp1((sampleRate * (frames/frameRate) * 2).round(2).asInteger);
 	int8 = int8.collectAs({ |i|  (i / 80).clip2().tanh * -6.dbamp },FloatArray);
