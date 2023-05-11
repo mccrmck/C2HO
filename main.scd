@@ -1,4 +1,4 @@
-// CH2O AV
+// C2HO AV
 (
 var pixPath    = "pix/".resolveRelative;
 var vidsPath   = "vids/".resolveRelative;
